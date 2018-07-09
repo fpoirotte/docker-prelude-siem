@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sleep 5
+
+echo "Creating sensor's profile"
+prelude-admin register "prelude-correlator" "idmef:rw" manager --uid 0 --gid 0 --passwd-file=/prelude-registration || :
+
+echo "Starting Correlator"
+exec /usr/sbin/prelude-correlator

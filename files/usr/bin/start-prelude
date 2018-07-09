@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -eu
+
+if [ -v ALERTS_DB_PASS ]; then
+    # Wait for the database to come online
+    echo -n "Waiting for the databases to come online"
+    while [ true ]; do
+        res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+        if [ "$res" = "OK" ]; then
+            break
+        fi
+        echo -n "."
+        sleep 1
+    done
+    echo ""
+fi
+
+
+if [ -f /etc/prewikka/prewikka.conf ]; then
+    # Substitute variables for prewikka
+    echo "Substituting variables for Prewikka"
+    alerts_db_pass=`printf "%q" "${ALERTS_DB_PASS}"`
+    gui_db_pass=`printf "%q" "${GUI_DB_PASS}"`
+    sed -i  -e "s$(printf '\001')@ALERTS_DB_PASS@$(printf '\001')${alerts_db_pass}$(printf '\001')g"  \
+            -e "s$(printf '\001')@GUI_DB_PASS@$(printf '\001')${gui_db_pass}$(printf '\001')g"  \
+            /etc/prewikka/prewikka.conf
+else
+    # Store the registration password for sensors
+    echo "Storing the password used by sensors"
+    printf "${SENSORS_PASS}" > /prelude-registration
+fi
+
+# Substitute variables for prelude-manager
+if [ -f /etc/prelude-manager/prelude-manager.conf ]; then
+    echo "Substituting variables for Prelude-Manager"
+    alerts_db_pass=`printf "%q" "${ALERTS_DB_PASS}"`
+    sed -i  -e "s$(printf '\001')@ALERTS_DB_PASS@$(printf '\001')${alerts_db_pass}$(printf '\001')g"  \
+            /etc/prelude-manager/prelude-manager.conf
+fi
+
+# Create the alerts' database model if needed
+if [ -f /usr/share/libpreludedb/classic/pgsql.sql ] && [ -x /usr/bin/psql ]; then
+    #/usr/share/libpreludedb/classic/pgsql.sql
+    tables=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d'`
+    if [ -z "$tables" ]; then
+        echo "Initializing alerts' database"
+        PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\i /usr/share/libpreludedb/classic/pgsql.sql'
+    fi
+fi
+
+# Execute the real command
+exec "$@"

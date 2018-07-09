@@ -1,0 +1,15 @@
+FROM centos
+
+RUN yum -y --setopt=tsflags=nodocs update && \
+    yum -y --setopt=tsflags=nodocs install epel-release
+
+RUN yum -y --setopt=tsflags=nodocs install prelude-correlator prelude-tools python-netaddr && \
+    yum clean all
+
+ADD files/etc/prelude-correlator/   /etc/prelude-correlator/
+ADD files/etc/prelude/              /etc/prelude/
+ADD files/usr/bin/                  /usr/bin/
+
+ENTRYPOINT ["start-prelude"]
+CMD ["start-prelude-correlator"]
+

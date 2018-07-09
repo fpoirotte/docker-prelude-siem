@@ -1,0 +1,95 @@
+version: '2'
+services:
+  db-alerts:
+    image: "centos/postgresql-95-centos7"
+    environment:
+      POSTGRESQL_DATABASE: prelude
+      POSTGRESQL_USER:     prelude
+      POSTGRESQL_PASSWORD: "${ALERTS_DB_PASS}"
+    networks:
+      - alerts
+    volumes:
+      - db-alerts:/var/lib/pgsql/data
+
+  db-gui:
+    image: "centos/postgresql-95-centos7"
+    environment:
+      POSTGRESQL_DATABASE: prewikka
+      POSTGRESQL_USER:     prewikka
+      POSTGRESQL_PASSWORD: "${GUI_DB_PASS}"
+    networks:
+      - gui
+    volumes:
+      - db-gui:/var/lib/pgsql/data
+
+  manager:
+    build:
+      context: ./
+      dockerfile: Dockerfile.manager
+    depends_on:
+      - db-alerts
+    environment:
+      ALERTS_DB_PASS: "${ALERTS_DB_PASS}"
+      SENSORS_PASS: "${SENSORS_PASS}"
+    ports:
+      - "5553:5553"
+    networks:
+      - agents
+      - alerts
+
+  correlator:
+    build:
+      context: ./
+      dockerfile: Dockerfile.correlator
+    depends_on:
+      - manager
+    environment:
+      SENSORS_PASS: "${SENSORS_PASS}"
+    networks:
+      - agents
+
+  lml:
+    build:
+      context: ./
+      dockerfile: Dockerfile.lml
+    depends_on:
+      - manager
+    environment:
+      SENSORS_PASS: "${SENSORS_PASS}"
+    ports:
+      - "514:514/tcp"
+      # Uncomment the next line to accept logs in the syslog format
+      # on UDP port 514.
+#      - "514:514/udp"
+    networks:
+      - agents
+
+  prewikka:
+    build:
+      context: ./
+      dockerfile: Dockerfile.prewikka
+    depends_on:
+      - db-alerts
+      - db-gui
+      - manager
+    ports:
+      - "80:80"
+    environment:
+      GUI_DB_PASS: "${GUI_DB_PASS}"
+      ALERTS_DB_PASS: "${ALERTS_DB_PASS}"
+    networks:
+      - alerts
+      - gui
+
+
+volumes:
+  db-alerts:
+    driver: local
+  db-gui:
+    driver: local
+
+
+networks:
+  alerts:
+  gui:
+  agents:

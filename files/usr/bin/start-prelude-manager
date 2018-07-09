@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "Creating sensor's profile"
+prelude-admin add "prelude-manager" --uid 0 --gid 0 || echo "Profile already exists"
+/usr/bin/prelude-admin registration-server prelude-manager --passwd-file=/prelude-registration --keepalive --no-confirm &
+
+echo "Starting Manager"
+exec /usr/sbin/prelude-manager
