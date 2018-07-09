@@ -33,6 +33,7 @@ services:
       SENSORS_PASS: "${SENSORS_PASS}"
     ports:
       - "5553:5553"
+      - "4690:4690"
     networks:
       - agents
       - alerts

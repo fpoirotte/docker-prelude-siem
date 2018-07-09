@@ -54,6 +54,7 @@ The following services get exposed to the host:
 * ``80/tcp``: web server
 * ``5553/tcp``: sensors' registration server (to connect external sensors
   like Suricata, OSSEC, ...)
+* ``4690/tcp``: IDMEF alert receiver (for external sensors)
 
 
 Known caveats
