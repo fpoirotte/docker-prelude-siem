@@ -12,5 +12,5 @@ ADD files/usr/bin/      /usr/bin/
 ADD files/etc/httpd     /etc/httpd/
 
 ENTRYPOINT ["start-prelude"]
-CMD ["apachectl", "-DFOREGROUND"]
+CMD ["start-prewikka"]
 
