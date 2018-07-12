@@ -19,16 +19,29 @@ versions of these dependencies:
 * docker-compose 1.8.0
 
 
-Usage
------
+Installation and start/stop instructions
+----------------------------------------
 
-To start the SIEM, run the following command:
+Using git and docker-composer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. sourcecode:: console
+Clone this repository:
 
-   docker-compose up --build --force-recreate --abort-on-container-exit
+..  sourcecode:: console
 
-This will spawn the following containers:
+    git clone https://github.com/fpoirotte/docker-prelude-siem.git
+
+To start the SIEM, go to the newly created folder and run ``docker-composer``:
+
+..  sourcecode:: console
+
+    cd docker-prelude-siem
+    docker-compose up --build --force-recreate --abort-on-container-exit
+
+``docker-compose`` will recreate the containers, start them and wait for
+further instructions.
+
+The following containers will be spawned during this process:
 
 * ``db-alerts``: database server for IDMEF alerts
 * ``db-gui``: database server for the user interface (Prewikka)
@@ -37,10 +50,37 @@ This will spawn the following containers:
 * ``lml``: log management lackey
 * ``prewikka``: web user interface
 
+To stop the SIEM, hit Ctrl+C in the terminal where ``docker-composer``
+was run.
+
+
+Using only docker
+~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Usage
+-----
+
 To access the SIEM, open a web browser and go to http://localhost/
 
-To stop the SIEM, hit Ctrl+C from the terminal where it was started
-and wait for the containers to stop.
+To start analyzing syslog entries, send them to port 514 (TCP, unless you
+also enabled the UDP port in the configuration file).
+
+You can also use external sensors. In that case, the sensor must first
+be registered against this machine (see
+https://www.prelude-siem.org/projects/prelude/wiki/InstallingAgentThirdparty
+for instructions on how to do that for the most commonly used sensors).
+When asked for a password during the registration process, input the
+value from the ``SENSORS_PASS`` variable listed in the ``environment`` file.
+
+..  note::
+
+    Since the containers are meant to be ephemeral, information about
+    the external sensors' registrations is lost when the ``manager``
+    container is restarted. You may need to register the sensors again
+    in that case.
 
 
 Exposed services
@@ -48,13 +88,24 @@ Exposed services
 
 The following services get exposed to the host:
 
-* ``514/tcp``: syslog receiver
-* ``514/udp``: syslog receiver (disabled by default as it usually conflicts
-  with the host's syslog server)
-* ``80/tcp``: web server
-* ``5553/tcp``: sensors' registration server (to connect external sensors
-  like Suricata, OSSEC, ...)
-* ``4690/tcp``: IDMEF alert receiver (for external sensors)
+* ``514/tcp`` (``lml`` container): syslog receiver
+
+* ``514/udp`` (``lml`` container): syslog receiver (disabled by default
+  as it usually conflicts with the host's syslog server)
+
+* ``80/tcp`` (``prewikka`` container): web interface
+
+* ``5553/tcp`` (``manager`` container): sensors' registration server
+  (to connect external sensors like Suricata, OSSEC, ...)
+
+* ``4690/tcp`` (``manager`` container): IDMEF alert receiver
+  (for external sensors)
+
+
+Customize detection/correlation rules
+-------------------------------------
+
+TODO
 
 
 Known caveats
