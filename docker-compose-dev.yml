@@ -23,7 +23,9 @@ services:
       - db-gui:/var/lib/pgsql/data
 
   manager:
-    image: "fpoirotte/prelude-manager"
+    build:
+      context: ./
+      dockerfile: Dockerfile.manager
     depends_on:
       - db-alerts
     environment:
@@ -37,7 +39,9 @@ services:
       - alerts
 
   correlator:
-    image: "fpoirotte/prelude-correlator"
+    build:
+      context: ./
+      dockerfile: Dockerfile.correlator
     depends_on:
       - manager
     environment:
@@ -46,7 +50,9 @@ services:
       - agents
 
   lml:
-    image: "fpoirotte/prelude-lml"
+    build:
+      context: ./
+      dockerfile: Dockerfile.lml
     depends_on:
       - manager
     environment:
@@ -60,7 +66,9 @@ services:
       - agents
 
   prewikka:
-    image: "fpoirotte/prewikka"
+    build:
+      context: ./
+      dockerfile: Dockerfile.prewikka
     depends_on:
       - db-alerts
       - db-gui
