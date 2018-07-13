@@ -1,8 +1,43 @@
 #!/bin/bash
 
-echo "Creating sensor's profile"
-prelude-admin add "prelude-manager" --uid 0 --gid 0 || echo "Profile already exists"
-/usr/bin/prelude-admin registration-server prelude-manager --passwd-file=/prelude-registration --keepalive --no-confirm &
+set -eu
 
-echo "Starting Manager"
+echo "Substituting variables"
+alerts_db_pass=`printf "%q" "${ALERTS_DB_PASS}"`
+sed -i  -e "s$(printf '\001')@ALERTS_DB_PASS@$(printf '\001')${alerts_db_pass}$(printf '\001')g"  \
+        /etc/prelude-manager/prelude-manager.conf
+
+echo "Storing the registration password"
+printf "${SENSORS_PASS}" > /prelude-registration
+
+echo "Creating the 'prelude-manager' profile"
+prelude-admin add "prelude-manager" --uid 0 --gid 0 || echo "Profile already exists"
+
+echo "Starting a registration server in the background"
+/usr/bin/prelude-admin registration-server prelude-manager --passwd-file=/prelude-registration --keepalive --no-confirm &
+sleep 1
+
+# Wait for the database to come online
+echo -n "Waiting for the IDMEF database to come online"
+while [ true ]; do
+    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    if [ "$res" = "OK" ]; then
+        break
+    fi
+    echo -n "."
+    sleep 1
+done
+echo ""
+
+# Create the alerts' database model if needed
+if [ -f /usr/share/libpreludedb/classic/pgsql.sql ] && [ -x /usr/bin/psql ]; then
+    #/usr/share/libpreludedb/classic/pgsql.sql
+    tables=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d'`
+    if [ -z "$tables" ]; then
+        echo "Initializing alerts' database"
+        PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\i /usr/share/libpreludedb/classic/pgsql.sql'
+    fi
+fi
+
+echo "Starting prelude-manager"
 exec /usr/sbin/prelude-manager

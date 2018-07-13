@@ -1,9 +1,14 @@
 #!/bin/bash
 
+set -eu
+
+echo "Storing the registration password"
+printf "${SENSORS_PASS}" > /prelude-registration
+
 sleep 5
 
-echo "Creating sensor's profile"
+echo "Creating the 'prelude-correlator' profile"
 prelude-admin register "prelude-correlator" "idmef:rw" manager --uid 0 --gid 0 --passwd-file=/prelude-registration || :
 
-echo "Starting Correlator"
+echo "Starting prelude-correlator"
 exec /usr/sbin/prelude-correlator

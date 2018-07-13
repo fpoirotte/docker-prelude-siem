@@ -1,8 +1,41 @@
 #!/bin/bash
 
+set -eu
+
+echo "Substituting variables"
+alerts_db_pass=`printf "%q" "${ALERTS_DB_PASS}"`
+gui_db_pass=`printf "%q" "${GUI_DB_PASS}"`
+sed -i  -e "s$(printf '\001')@ALERTS_DB_PASS@$(printf '\001')${alerts_db_pass}$(printf '\001')g"  \
+        -e "s$(printf '\001')@GUI_DB_PASS@$(printf '\001')${gui_db_pass}$(printf '\001')g"  \
+        /etc/prewikka/prewikka.conf
+
 # Make sure we're not confused by old, incompletely-shutdown httpd
 # context after restarting the container.  httpd won't start correctly
 # if it thinks it is already running.
 rm -rf /run/httpd/* /tmp/httpd*
 
+# Wait for the databases to come online
+echo -n "Waiting for the IDMEF database to come online"
+while [ true ]; do
+    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    if [ "$res" = "OK" ]; then
+        break
+    fi
+    echo -n "."
+    sleep 1
+done
+echo ""
+
+echo -n "Waiting for the GUI database to come online"
+while [ true ]; do
+    res=`PGPASSWORD="${GUI_DB_PASS}" psql -U prelude -h db-gui -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    if [ "$res" = "OK" ]; then
+        break
+    fi
+    echo -n "."
+    sleep 1
+done
+echo ""
+
+echo "Starting the HTTP daemon"
 exec /usr/sbin/apachectl -DFOREGROUND

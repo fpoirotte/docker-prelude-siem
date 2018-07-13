@@ -1,9 +1,14 @@
 #!/bin/bash
 
+set -eu
+
+echo "Storing the registration password"
+printf "${SENSORS_PASS}" > /prelude-registration
+
 sleep 5
 
-echo "Creating sensor's profile"
+echo "Creating the 'prelude-lml' profile"
 prelude-admin register "prelude-lml" "idmef:w" manager --uid 0 --gid 0 --passwd-file=/prelude-registration || :
 
-echo "Starting LML"
+echo "Starting prelude-lml"
 exec /usr/sbin/prelude-lml
