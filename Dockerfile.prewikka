@@ -11,6 +11,8 @@ ADD files/etc/prewikka  /etc/prewikka/
 ADD files/usr/bin/      /usr/bin/
 ADD files/etc/httpd     /etc/httpd/
 
+EXPOSE 80
+
 ENTRYPOINT ["start-prelude"]
 CMD ["start-prewikka"]
 
