@@ -9,8 +9,8 @@ Requirements
 
 This repository relies on the following dependencies:
 
-* docker.io
-* docker-compose
+* docker.io >= 1.10.0
+* docker-compose >= 1.8.0 (optional)
 
 It has been tested on Debian 9.4 (Stretch) against the following
 versions of these dependencies:
