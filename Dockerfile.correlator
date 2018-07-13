@@ -3,7 +3,7 @@ FROM centos
 RUN yum -y --setopt=tsflags=nodocs update && \
     yum -y --setopt=tsflags=nodocs install epel-release
 
-RUN yum -y --setopt=tsflags=nodocs install prelude-correlator prelude-tools python-netaddr && \
+RUN yum -y --setopt=tsflags=nodocs install prelude-correlator prelude-tools python34-netaddr && \
     yum clean all
 
 ADD files/etc/prelude-correlator/   /etc/prelude-correlator/
