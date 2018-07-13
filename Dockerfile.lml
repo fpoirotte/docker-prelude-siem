@@ -10,6 +10,7 @@ ADD files/etc/prelude-lml/  /etc/prelude-lml/
 ADD files/etc/prelude/      /etc/prelude/
 ADD files/usr/bin/          /usr/bin/
 
+# Syslog receiver
 EXPOSE 514/tcp
 EXPOSE 514/udp
 

@@ -9,7 +9,10 @@ RUN yum -y --setopt=tsflags=nodocs install postgresql prelude-manager prelude-ma
 ADD files/etc/prelude-manager   /etc/prelude-manager/
 ADD files/usr/bin               /usr/bin/
 
+# Registration server
 EXPOSE 5553
+
+# IDMEF alert manager
 EXPOSE 4690
 
 ENTRYPOINT ["start-prelude"]
