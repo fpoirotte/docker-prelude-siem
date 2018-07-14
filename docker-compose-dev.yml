@@ -25,7 +25,7 @@ services:
   manager:
     build:
       context: ./
-      dockerfile: Dockerfile.manager
+      dockerfile: dockerfiles/manager/Dockerfile
     depends_on:
       - db-alerts
     environment:
@@ -41,7 +41,7 @@ services:
   correlator:
     build:
       context: ./
-      dockerfile: Dockerfile.correlator
+      dockerfile: dockerfiles/correlator/Dockerfile
     depends_on:
       - manager
     environment:
@@ -52,7 +52,7 @@ services:
   lml:
     build:
       context: ./
-      dockerfile: Dockerfile.lml
+      dockerfile: dockerfiles/lml/Dockerfile
     depends_on:
       - manager
     environment:
@@ -68,7 +68,7 @@ services:
   prewikka:
     build:
       context: ./
-      dockerfile: Dockerfile.prewikka
+      dockerfile: dockerfiles/prewikka/Dockerfile
     depends_on:
       - db-alerts
       - db-gui

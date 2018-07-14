@@ -11,7 +11,7 @@ build: $(addprefix build-,$(CONTAINERS))
 push: $(addprefix push-,$(CONTAINERS))
 
 build-fpoirotte/%:
-	docker build -f "Dockerfile.$(subst prelude-,,$*)" --pull=true -t "fpoirotte/$*:latest" .
+	docker build -f "dockerfiles/$(subst prelude-,,$*)/Dockerfile" --pull=true -t "fpoirotte/$*:latest" .
 
 push-fpoirotte/%:
 	docker push "fpoirotte/$*"
