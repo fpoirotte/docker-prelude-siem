@@ -6,8 +6,8 @@ RUN yum -y --setopt=tsflags=nodocs update && \
 RUN yum -y --setopt=tsflags=nodocs install postgresql prelude-manager prelude-manager-db-plugin preludedb-pgsql prelude-tools && \
     yum clean all
 
-ADD files/etc/prelude-manager   /etc/prelude-manager/
-ADD files/usr/bin               /usr/bin/
+COPY files/etc/prelude-manager/ /etc/prelude-manager/
+COPY files/usr/bin/             /usr/bin/
 
 # Registration server
 EXPOSE 5553

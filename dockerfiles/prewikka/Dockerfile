@@ -7,9 +7,9 @@ RUN yum -y --setopt=tsflags=nodocs install httpd postgresql prewikka preludedb-p
     yum clean all && \
     mv /usr/share/prewikka/prewikka.wsgi /var/www/html/
 
-ADD files/etc/prewikka  /etc/prewikka/
-ADD files/usr/bin/      /usr/bin/
-ADD files/etc/httpd     /etc/httpd/
+COPY files/etc/prewikka/    /etc/prewikka/
+COPY files/usr/bin/         /usr/bin/
+COPY files/etc/httpd/       /etc/httpd/
 
 EXPOSE 80
 

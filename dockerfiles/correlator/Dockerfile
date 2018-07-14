@@ -6,9 +6,9 @@ RUN yum -y --setopt=tsflags=nodocs update && \
 RUN yum -y --setopt=tsflags=nodocs install prelude-correlator prelude-tools python34-netaddr && \
     yum clean all
 
-ADD files/etc/prelude-correlator/   /etc/prelude-correlator/
-ADD files/etc/prelude/              /etc/prelude/
-ADD files/usr/bin/                  /usr/bin/
+COPY files/etc/prelude-correlator/  /etc/prelude-correlator/
+COPY files/etc/prelude/             /etc/prelude/
+COPY files/usr/bin/                 /usr/bin/
 
 ENTRYPOINT ["start-prelude"]
 CMD ["start-prelude-correlator"]
