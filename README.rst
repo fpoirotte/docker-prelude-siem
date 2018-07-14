@@ -18,6 +18,8 @@ versions of these dependencies:
 * docker.io 1.11.2
 * docker-compose 1.8.0
 
+In addition, the host should have at least 8 GB of RAM.
+
 
 Installation and start/stop instructions
 ----------------------------------------
@@ -57,7 +59,128 @@ was run.
 Using only docker
 ~~~~~~~~~~~~~~~~~
 
-TODO
+Installation using only docker is a little bit more tedious.
+The following steps will ensure you get an installation identical to the
+``docker-composer`` one presented above. The same container names will be used
+as well.
+
+1.  Create the networks:
+
+    ..  sourcecode:: console
+
+        docker network create prelude_alerts
+        docker network create prelude_gui
+        docker network create prelude_agents
+
+2.  Create the volumes:
+
+    ..  sourcecode:: console
+
+        docker volume create --driver local --name prelude_db-alerts
+        docker volume create --driver local --name prelude_db-gui
+
+3.  Create the various containers based on their respective images:
+
+    ..  sourcecode:: console
+
+        # We first define a few variables which will then be passed
+        # to individual containers as necessary.
+        ALERTS_DB_PASS=prelude
+        GUI_DB_PASS=prewikka
+        SENSORS_PASS=prelude
+
+        docker create \
+            -v prelude_db-alerts:/var/lib/pgsql/data \
+            -e POSTGRESQL_DATABASE=prelude \
+            -e POSTGRESQL_USER=prelude \
+            -e POSTGRESQL_PASSWORD="${ALERTS_DB_PASS}" \
+            --net=none --name prelude_db-alerts_1   centos/postgresql-95-centos7
+
+        docker create \
+            -v prelude_db-gui:/var/lib/pgsql/data \
+            -e POSTGRESQL_DATABASE=prewikka \
+            -e POSTGRESQL_USER=prewikka \
+            -e POSTGRESQL_PASSWORD="${GUI_DB_PASS}" \
+            --net=none --name prelude_db-gui_1      centos/postgresql-95-centos7
+
+        docker create \
+            -p 5553:5553 -p 4690:4690 \
+            -e ALERTS_DB_PASS="${ALERTS_DB_PASS}" \
+            -e SENSORS_PASS="${SENSORS_PASS}" \
+            --net=none --name prelude_manager_1     fpoirotte/prelude-manager
+
+        docker create \
+            -e SENSORS_PASS="${SENSORS_PASS}" \
+            --net=none --name prelude_correlator_1  fpoirotte/prelude-correlator
+
+        docker create \
+            -p 80:80 \
+            -e GUI_DB_PASS="${GUI_DB_PASS}" \
+            -e ALERTS_DB_PASS="${ALERTS_DB_PASS}" \
+            --net=none --name prelude_prewikka_1    fpoirotte/prewikka
+
+        # Use the following command to enable the syslog receiver for TCP only.
+        # This is recommended for most installations to avoid potential conflicts
+        # with the host's own syslog server.
+        docker create \
+            -p 514:514/tcp \
+            -e SENSORS_PASS="${SENSORS_PASS}" \
+            --net=none --name prelude_lml_1         fpoirotte/prelude-lml
+
+        # Otherwise, use the following command to enable it for both TCP and UDP.
+        docker create \
+            -p 514:514/tcp -p 514:514/udp \
+            -e SENSORS_PASS="${SENSORS_PASS}" \
+            --net=none --name prelude_lml_1         fpoirotte/prelude-lml
+
+4.  Reconnect the containers to their respective networks:
+
+    ..  sourcecode:: console
+
+        docker network disconnect none prelude_db-alerts_1
+        docker network disconnect none prelude_db-gui_1
+        docker network disconnect none prelude_manager_1
+        docker network disconnect none prelude_correlator_1
+        docker network disconnect none prelude_lml_1
+        docker network disconnect none prelude_prewikka_1
+        docker network connect --alias=db-alerts    prelude_alerts   prelude_db-alerts_1
+        docker network connect --alias=manager      prelude_alerts   prelude_manager_1
+        docker network connect --alias=prewikka     prelude_alerts   prelude_prewikka_1
+        docker network connect --alias=db-gui       prelude_gui      prelude_db-gui_1
+        docker network connect --alias=prewikka     prelude_gui      prelude_prewikka_1
+        docker network connect --alias=manager      prelude_agents   prelude_manager_1
+        docker network connect --alias=correlator   prelude_agents   prelude_correlator_1
+        docker network connect --alias=lml          prelude_agents   prelude_lml_1
+
+That's it for the installation.
+
+Now, to start the SIEM, run:
+
+..  sourcecode:: console
+
+    docker start prelude_db-alerts_1 prelude_db-gui_1 prelude_manager_1 prelude_correlator_1 prelude_lml_1 prelude_prewikka_1
+
+To stop it, run:
+
+..  sourcecode:: console
+
+    docker stop prelude_prewikka_1 prelude_lml_1 prelude_correlator_1 prelude_manager_1 prelude_db-gui_1 prelude_db-alerts_1
+
+
+Uninstallation
+--------------
+
+Before you install the SIEM, make sure the containers are stopped (see above).
+The following commands will remove most objects used by the SIEM,
+only leaving behind images related to the base OS (``centos``)
+and databases (``centos/postgresql-95-centos7``):
+
+..  sourcecode:: console
+
+    docker          rm  prelude_prewikka_1 prelude_lml_1 prelude_correlator_1 prelude_manager_1 prelude_db-gui_1 prelude_db-alerts_1
+    docker network  rm  prelude_agents prelude_alerts prelude_gui
+    docker volume   rm  prelude_db-alerts prelude_db-gui
+    docker          rmi fpoirotte/prelude-lml fpoirotte/prelude-correlator fpoirotte/prelude-manager fpoirotte/prewikka
 
 
 Usage
@@ -102,10 +225,36 @@ The following services get exposed to the host:
   (for external sensors)
 
 
-Customize detection/correlation rules
--------------------------------------
+Test the SIEM
+-------------
 
-TODO
+To test the SIEM, send syslog entries to ``localhost:514`` (TCP).
+
+For example, the following command will produce a ``Remote Login`` alert
+using the predefined rules:
+
+..  sourcecode:: console
+
+    logger --stderr -i -t sshd --tcp --port 514 --priority auth.info --rfc3164 --server localhost Failed password for root from ::1 port 45332 ssh2
+
+
+Customizations
+--------------
+
+Detection rules
+~~~~~~~~~~~~~~~
+
+You can customize detection rules by mounting your own folder into the ``lml``
+container to use in place of ``/etc/prelude-lml/ruleset/``.
+See ``https://github.com/Prelude-SIEM/prelude-lml-rules/tree/master/ruleset``
+to get a sense of the contents of this folder.
+
+Correlation rules
+~~~~~~~~~~~~~~~~~
+
+You can enable/disable/customize correlation rules by mounting your own folder
+containing the rules' configuration files into the ``correlator`` container
+in place of ``/etc/prelude-correlator/conf.d/``.
 
 
 Known caveats
