@@ -18,7 +18,7 @@ versions of these dependencies:
 * docker.io 1.11.2
 * docker-compose 1.8.0
 
-In addition, the host should have at least 8 GB of RAM.
+In addition, the host should have at least 4 GB of RAM.
 
 
 Installation and start/stop instructions
