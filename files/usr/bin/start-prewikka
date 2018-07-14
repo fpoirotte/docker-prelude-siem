@@ -15,27 +15,23 @@ sed -i  -e "s$(printf '\001')@ALERTS_DB_PASS@$(printf '\001')${alerts_db_pass}$(
 rm -rf /run/httpd/* /tmp/httpd*
 
 # Wait for the databases to come online
-echo -n "Waiting for the IDMEF database to come online"
 while [ true ]; do
-    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    echo "Waiting for the IDMEF database to come online..."
+    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' >/dev/null && echo "OK" || echo "NOK"`
     if [ "$res" = "OK" ]; then
         break
     fi
-    echo -n "."
     sleep 1
 done
-echo ""
 
-echo -n "Waiting for the GUI database to come online"
 while [ true ]; do
-    res=`PGPASSWORD="${GUI_DB_PASS}" psql -U prelude -h db-gui -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    echo "Waiting for the GUI database to come online..."
+    res=`PGPASSWORD="${GUI_DB_PASS}" psql -U prewikka -h db-gui -Antq -c '\d' >/dev/null && echo "OK" || echo "NOK"`
     if [ "$res" = "OK" ]; then
         break
     fi
-    echo -n "."
     sleep 1
 done
-echo ""
 
 echo "Starting the HTTP daemon"
 exec /usr/sbin/apachectl -DFOREGROUND

@@ -18,16 +18,14 @@ echo "Starting a registration server in the background"
 sleep 1
 
 # Wait for the database to come online
-echo -n "Waiting for the IDMEF database to come online"
 while [ true ]; do
-    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' &> /dev/null && echo "OK" || echo "NOK"`
+    echo "Waiting for the IDMEF database to come online..."
+    res=`PGPASSWORD="${ALERTS_DB_PASS}" psql -U prelude -h db-alerts -Antq -c '\d' >/dev/null && echo "OK" || echo "NOK"`
     if [ "$res" = "OK" ]; then
         break
     fi
-    echo -n "."
     sleep 1
 done
-echo ""
 
 # Create the alerts' database model if needed
 if [ -f /usr/share/libpreludedb/classic/pgsql.sql ] && [ -x /usr/bin/psql ]; then
