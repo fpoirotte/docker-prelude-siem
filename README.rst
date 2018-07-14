@@ -24,8 +24,8 @@ In addition, the host should have at least 4 GB of RAM.
 Installation and start/stop instructions
 ----------------------------------------
 
-Using git and docker-composer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using git and docker-compose
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Clone this repository:
 
@@ -33,7 +33,7 @@ Clone this repository:
 
     git clone https://github.com/fpoirotte/docker-prelude-siem.git
 
-To start the SIEM, go to the newly created folder and run ``docker-composer``:
+To start the SIEM, go to the newly created folder and run ``docker-compose``:
 
 ..  sourcecode:: console
 
@@ -52,7 +52,7 @@ The following containers will be spawned during this process:
 * ``lml``: log management lackey
 * ``prewikka``: web user interface
 
-To stop the SIEM, hit Ctrl+C in the terminal where ``docker-composer``
+To stop the SIEM, hit Ctrl+C in the terminal where ``docker-compose``
 was run.
 
 
@@ -61,7 +61,7 @@ Using only docker
 
 Installation using only docker is a little bit more tedious.
 The following steps will ensure you get an installation identical to the
-``docker-composer`` one presented above. The same container names will be used
+``docker-compose`` one presented above. The same container names will be used
 as well.
 
 1.  Create the networks:
