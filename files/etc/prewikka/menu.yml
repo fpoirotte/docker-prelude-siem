@@ -8,14 +8,14 @@
   categories:
       - sections:
             - name: Alerts
-              default_tab: Alerts
               tabs:
                   - Alerts
-                  - Threats
-            - name: Agents
+                  - Aggregated alerts
+            - name: Threats
+              default_tab: Threats
               tabs:
-                  - Agents
-                  - Heartbeats
+                  - Threats
+                  - Aggregated threats
 - name: ADMIN
   icon: sliders
   categories:
@@ -28,6 +28,12 @@
               tabs:
                   - My account
                   - Filters
+            - name: Monitoring
+              expand: true
+              tabs:
+                  - Agents
+                  - Heartbeats
+                  - Aggregated heartbeats
 - icon: question
   default: true
   categories:
@@ -35,3 +41,6 @@
             - name: Apps
               tabs:
                   - Apps
+            - name: Help
+              tabs:
+                  - IDMEF

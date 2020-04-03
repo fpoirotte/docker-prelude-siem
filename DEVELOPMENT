@@ -1,0 +1,50 @@
+DEVELOPMENT
+###########
+
+This file contains quick instructions to help with development.
+
+
+Test locally
+============
+
+Development mode
+----------------
+
+  make run ENVIRONMENT=dev
+
+Test published images
+---------------------
+
+  make run
+
+
+Rebuild & tag a new image
+=========================
+
+  make build ENVIRONMENT=dev VERSION=X.Y
+
+Note: the newly-built image will also be tagged "latest" automatically.
+
+
+Push images
+===========
+
+  make push VERSION=X.Y
+
+This will push both the images tagged with the "X.Y" and "latest" versions.
+If VERSION is omitted, only this command only pushes the "latest" versions.
+
+
+Cleanup
+=======
+
+  make clean
+
+This will try to clean containers & images created automatically by
+docker-compose.
+
+You may also want to run:
+
+  docker image prune -a
+
+to also remove unused images.

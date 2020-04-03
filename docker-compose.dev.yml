@@ -1,0 +1,26 @@
+version: '3.1'
+services:
+  manager:
+    build:
+      context: ./
+      dockerfile: dockerfiles/manager/Dockerfile
+
+  correlator:
+    build:
+      context: ./
+      dockerfile: dockerfiles/correlator/Dockerfile
+
+  lml:
+    build:
+      context: ./
+      dockerfile: dockerfiles/lml/Dockerfile
+
+  prewikka:
+    build:
+      context: ./
+      dockerfile: dockerfiles/prewikka/Dockerfile
+
+  prewikka-crontab:
+    build:
+      context: ./
+      dockerfile: dockerfiles/prewikka-crontab/Dockerfile

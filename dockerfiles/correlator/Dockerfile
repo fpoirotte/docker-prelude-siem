@@ -1,10 +1,16 @@
-FROM centos
+FROM centos:7
 
-RUN yum -y --setopt=tsflags=nodocs update && \
-    yum -y --setopt=tsflags=nodocs install epel-release
-
-RUN yum -y --setopt=tsflags=nodocs install prelude-correlator prelude-tools python34-netaddr && \
-    yum clean all
+ARG buildenv
+RUN (test "${buildenv:-prod}" = "dev" && yum -y --setopt=tsflags=nodocs update || :) \
+    && yum -y --setopt=tsflags=nodocs install epel-release \
+    && yum -y --setopt=tsflags=nodocs install \
+        postgresql \
+        preludedb-pgsql \
+        python2-prelude-correlator \
+        prelude-tools \
+        python-netaddr \
+    && yum clean all \
+    && rm -rf /var/cache/yum
 
 COPY files/etc/prelude-correlator/  /etc/prelude-correlator/
 COPY files/etc/prelude/             /etc/prelude/

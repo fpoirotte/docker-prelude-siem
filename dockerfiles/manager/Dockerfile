@@ -1,19 +1,23 @@
-FROM centos
+FROM centos:7
 
-RUN yum -y --setopt=tsflags=nodocs update && \
-    yum -y --setopt=tsflags=nodocs install epel-release
-
-RUN yum -y --setopt=tsflags=nodocs install postgresql prelude-manager prelude-manager-db-plugin preludedb-pgsql prelude-tools && \
-    yum clean all
+ARG buildenv
+RUN (test "${buildenv:-prod}" = "dev" && yum -y --setopt=tsflags=nodocs update || :) \
+    && yum -y --setopt=tsflags=nodocs install epel-release \
+    && yum -y --setopt=tsflags=nodocs install \
+        postgresql \
+        prelude-manager \
+        prelude-manager-db-plugin \
+        preludedb-pgsql \
+        prelude-tools \
+    && yum clean all \
+    && rm -rf /var/cache/yum
 
 COPY files/etc/prelude-manager/ /etc/prelude-manager/
 COPY files/usr/bin/             /usr/bin/
 
-# Registration server
-EXPOSE 5553
-
-# IDMEF alert manager
-EXPOSE 4690
+# 4690 = IDMEF alert manager
+# 5553 = Registration server
+EXPOSE 4690 5553
 
 ENTRYPOINT ["start-prelude"]
 CMD ["start-prelude-manager"]

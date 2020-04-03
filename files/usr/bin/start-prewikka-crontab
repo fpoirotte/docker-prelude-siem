@@ -4,16 +4,14 @@ set -eu
 
 echo "Preparing files required to access the database"
 ALERTS_DB_PASS=$(cat "${ALERTS_DB_PASSWORD_FILE}")
+GUI_DB_PASS=$(cat "${GUI_DB_PASSWORD_FILE}")
 touch                                                            ~root/.pgpass
 chmod 0600                                                       ~root/.pgpass
 chown root:root                                                  ~root/.pgpass
 printf "db-alerts:5432:prelude:prelude:%s\n" "$ALERTS_DB_PASS" > ~root/.pgpass
+printf "db-gui:5432:prewikka:prewikka:%s\n"  "$GUI_DB_PASS"   >> ~root/.pgpass
 
-echo "Creating the 'prelude-correlator' profile"
-prelude-admin register "prelude-correlator" "idmef:rw" manager --uid 0 --gid 0 "--passwd-file=${SENSORS_PASSWORD_FILE}" || :
-
-
-# Wait for the database to come online
+# Wait for the databases to come online
 while [ true ]; do
     echo "Waiting for the IDMEF database to come online..."
     res=`psql -U prelude -h db-alerts -Antq -c '\d' >/dev/null && echo "OK" || echo "NOK"`
@@ -23,5 +21,14 @@ while [ true ]; do
     sleep 1
 done
 
-echo "Starting prelude-correlator"
-exec /usr/sbin/prelude-correlator-2
+while [ true ]; do
+    echo "Waiting for the GUI database to come online..."
+    res=`psql -U prewikka -h db-gui -Antq -c '\d' >/dev/null && echo "OK" || echo "NOK"`
+    if [ "$res" = "OK" ]; then
+        break
+    fi
+    sleep 1
+done
+
+echo "Starting the prewikka-crontab daemon"
+exec /usr/sbin/prewikka-crontab

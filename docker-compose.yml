@@ -1,34 +1,40 @@
-version: '2'
+version: '3.1'
 services:
   db-alerts:
-    image: "centos/postgresql-95-centos7"
+    image: "postgres:latest"
     environment:
-      POSTGRESQL_DATABASE: prelude
-      POSTGRESQL_USER:     prelude
-      POSTGRESQL_PASSWORD: "${ALERTS_DB_PASS}"
+      POSTGRES_DB:       prelude
+      POSTGRES_USER:     prelude
+      POSTGRES_PASSWORD_FILE: /run/secrets/alerts_db
     networks:
       - alerts
+    secrets:
+      - alerts_db
     volumes:
       - db-alerts:/var/lib/pgsql/data
 
   db-gui:
-    image: "centos/postgresql-95-centos7"
+    image: "postgres:latest"
     environment:
-      POSTGRESQL_DATABASE: prewikka
-      POSTGRESQL_USER:     prewikka
-      POSTGRESQL_PASSWORD: "${GUI_DB_PASS}"
+      POSTGRES_DB:       prewikka
+      POSTGRES_USER:     prewikka
+      POSTGRES_PASSWORD_FILE: /run/secrets/gui_db
     networks:
       - gui
+    secrets:
+      - gui_db
     volumes:
       - db-gui:/var/lib/pgsql/data
 
   manager:
-    image: "fpoirotte/prelude-manager"
     depends_on:
       - db-alerts
     environment:
-      ALERTS_DB_PASS: "${ALERTS_DB_PASS}"
-      SENSORS_PASS: "${SENSORS_PASS}"
+      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
+      SENSORS_PASSWORD_FILE:   /run/secrets/sensors
+    secrets:
+      - sensors
+      - alerts_db
     ports:
       - "5553:5553"
       - "4690:4690"
@@ -37,20 +43,26 @@ services:
       - alerts
 
   correlator:
-    image: "fpoirotte/prelude-correlator"
     depends_on:
       - manager
+      - db-alerts
     environment:
-      SENSORS_PASS: "${SENSORS_PASS}"
+      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
+      SENSORS_PASSWORD_FILE: /run/secrets/sensors
+    secrets:
+      - alerts_db
+      - sensors
     networks:
       - agents
+      - alerts
 
   lml:
-    image: "fpoirotte/prelude-lml"
     depends_on:
       - manager
     environment:
-      SENSORS_PASS: "${SENSORS_PASS}"
+      SENSORS_PASSWORD_FILE: /run/secrets/sensors
+    secrets:
+      - sensors
     ports:
       - "514:514/tcp"
       # Uncomment the next line to accept logs in the syslog format
@@ -60,16 +72,33 @@ services:
       - agents
 
   prewikka:
-    image: "fpoirotte/prewikka"
     depends_on:
       - db-alerts
       - db-gui
       - manager
+    environment:
+      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
+      GUI_DB_PASSWORD_FILE:    /run/secrets/gui_db
     ports:
       - "80:80"
+    secrets:
+      - alerts_db
+      - gui_db
+    networks:
+      - alerts
+      - gui
+
+  prewikka-crontab:
+    depends_on:
+      - db-alerts
+      - db-gui
+      - manager
     environment:
-      GUI_DB_PASS: "${GUI_DB_PASS}"
-      ALERTS_DB_PASS: "${ALERTS_DB_PASS}"
+      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
+      GUI_DB_PASSWORD_FILE:    /run/secrets/gui_db
+    secrets:
+      - alerts_db
+      - gui_db
     networks:
       - alerts
       - gui
@@ -86,3 +115,12 @@ networks:
   alerts:
   gui:
   agents:
+
+
+secrets:
+  alerts_db:
+    file: secrets/alerts_db
+  gui_db:
+    file: secrets/gui_db
+  sensors:
+    file: secrets/sensors
