@@ -10,7 +10,7 @@ all: run
 
 .PHONY: run
 run:
-	docker-compose -f docker-compose.yml -f "docker-compose.$(ENVIRONMENT).yml" up --abort-on-container-exit
+	TAG=$(VERSION) docker-compose -f docker-compose.yml -f "docker-compose.$(ENVIRONMENT).yml" up --abort-on-container-exit
 
 .PHONY: build
 build: $(addprefix build-,$(CONTAINERS))

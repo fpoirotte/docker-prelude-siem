@@ -1,16 +1,16 @@
 version: '3.1'
 services:
   manager:
-    image: "fpoirotte/prelude-manager"
+    image: "fpoirotte/prelude-manager:${TAG}"
 
   correlator:
-    image: "fpoirotte/prelude-correlator"
+    image: "fpoirotte/prelude-correlator:${TAG}"
 
   lml:
-    image: "fpoirotte/prelude-lml"
+    image: "fpoirotte/prelude-lml:${TAG}"
 
   prewikka:
-    image: "fpoirotte/prewikka"
+    image: "fpoirotte/prewikka:${TAG}"
 
   prewikka-crontab:
-    image: "fpoirotte/prewikka-crontab"
+    image: "fpoirotte/prewikka-crontab:${TAG}"
