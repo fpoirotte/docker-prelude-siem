@@ -3,6 +3,8 @@ FROM centos:7
 ARG buildenv
 RUN (test "${buildenv:-prod}" = "dev" && yum -y --setopt=tsflags=nodocs update || :) \
     && yum -y --setopt=tsflags=nodocs install epel-release \
+    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
+        python-croniter \
     && yum -y --setopt=tsflags=nodocs install \
         httpd \
         mod_wsgi \
