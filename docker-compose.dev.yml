@@ -4,23 +4,28 @@ services:
     build:
       context: ./
       dockerfile: dockerfiles/manager/Dockerfile
+    image: fpoirotte/prelude-manager:unstable
 
   correlator:
     build:
       context: ./
       dockerfile: dockerfiles/correlator/Dockerfile
+    image: fpoirotte/prelude-correlator:unstable
 
   lml:
     build:
       context: ./
       dockerfile: dockerfiles/lml/Dockerfile
+    image: fpoirotte/prelude-lml:unstable
 
   prewikka:
     build:
       context: ./
       dockerfile: dockerfiles/prewikka/Dockerfile
+    image: fpoirotte/prewikka:unstable
 
   prewikka-crontab:
     build:
       context: ./
       dockerfile: dockerfiles/prewikka-crontab/Dockerfile
+    image: fpoirotte/prewikka-unstable:unstable
