@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e
 export PATH=/usr/bin:/bin
 
 get_release () {
@@ -43,15 +44,22 @@ for module in correlator crontab manager lml prewikka; do
     release=$(get_release "$tag")
     is_stable=$( (printf "%s" "$release" | grep -qP '^[0-9]+\.[0-9]+\.[0-9]+$') && echo 1 || echo 0 )
 
+    docker rmi "${reponame}:${release}" || :
+    docker pull "${reponame}:${release}"
     if [ -z "$latest" ] && [ $is_stable -eq 1 ]; then
-      docker push "${reponame}:${release}" "${reponame}:latest"
+      docker tag  "${reponame}:${release}" "${reponame}:latest"
+      docker push "${reponame}:latest"
+      docker rmi  "${reponame}:latest"
       latest="$tag"
     fi
 
     if [ "$relbranch" != "$prev_relbranch" ]; then
-      docker push "${reponame}:${release}" "${reponame}:${relbranch}"
+      docker tag  "${reponame}:${release}" "${reponame}:${relbranch}"
+      docker push "${reponame}:${relbranch}"
+      docker rmi  "${reponame}:${relbranch}"
     fi
 
+    docker rmi "${reponame}:${release}"
     prev_relbranch="$relbranch"
   done
 done
