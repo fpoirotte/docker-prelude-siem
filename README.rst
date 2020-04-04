@@ -293,9 +293,6 @@ In developer mode, the containers will use images which are recreated from
 the Dockerfiles contained in the git repository, rather than reusing pre-built
 images published on Docker Hub.
 
-In addition, packages inside the base image will get updated automatically
-as part of the new image's creation.
-
 This mode is only useful for myself and others who may want to fork this
 repository.
 

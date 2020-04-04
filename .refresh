@@ -1,0 +1,58 @@
+#!/bin/sh
+
+export PATH=/usr/bin:/bin
+
+get_release () {
+  local res
+  # Remove the component's name
+  res=$( printf "%s" "$1" | cut -d- -f2- )
+  # Remove the version prefix
+  printf "%s" "${res#v}"
+}
+
+get_relbranch () {
+  # Keep only major/minor information
+  get_release "$1" | grep -oP '^[0-9]+\.[0-9]+'
+}
+
+
+get_reponame () {
+  case "$1" in
+    correlator|manager|lml)
+      echo "fpoirotte/prelude-$1"
+      ;;
+    prewikka)
+      echo fpoirotte/prewikka
+      ;;
+    crontab)
+      echo fpoirotte/prewikka-crontab
+      ;;
+  esac
+}
+
+
+for module in correlator crontab manager lml prewikka; do
+  latest=""
+  relbranch=""
+  prev_relbranch=""
+  reponame=$(get_reponame "$module")
+  tags=$(git tag -l "${module}-*" | sort -Vr)
+
+  for tag in $tags; do
+    relbranch=$(get_relbranch "$tag")
+    release=$(get_release "$tag")
+    is_stable=$( (printf "%s" "$release" | grep -qP '^[0-9]+\.[0-9]+\.[0-9]+$') && echo 1 || echo 0 )
+
+    if [ -z "$latest" ] && [ $is_stable -eq 1 ]; then
+      docker push "${reponame}:${release}" "${reponame}:latest"
+      latest="$tag"
+    fi
+
+    if [ "$relbranch" != "$prev_relbranch" ]; then
+      docker push "${reponame}:${release}" "${reponame}:${relbranch}"
+    fi
+
+    prev_relbranch="$relbranch"
+  done
+done
+

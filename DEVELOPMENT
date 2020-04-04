@@ -4,35 +4,77 @@ DEVELOPMENT
 This file contains quick instructions to help with development.
 
 
-Test locally
-============
+Workflow
+========
 
-Development mode
-----------------
+The workflow is as follow:
+- Make some changes in the repository
+- Use docker-composer to rebuild images from local files and run the resulting
+  images
+- Test the containers
+- Once the changes are validated, create a separate (signed) git tag for each
+  impacted container
+- Go to Docker Hub and wait for all images to be built
+- Refresh the tags(see below)
+
+Notes :
+
+    Tags should be named "<component>-<version>" where <version> refers to
+    the component's RPM package version and <component> may be one of:
+      - correlator
+      - crontab (for the "prewikka-crontab" container)
+      - lml
+      - manager
+      - prewikka
+
+    If necessary, you may override an already-existing git tag in case changes
+    were made to the container (Dockerfile, configuration files, etc.)
+    but not to the underlying component's version.
+    Changes to an RPM package's revision number do not count as an update to
+    the component's version. So tag rewriting may be used in that case too.
+
+
+Rebuild and test the images
+===========================
 
   make run ENVIRONMENT=dev
-
-Test published images
----------------------
-
-  make run
-
-
-Rebuild & tag a new image
-=========================
-
-  make build ENVIRONMENT=dev VERSION=X.Y
-
-Note: the newly-built image will also be tagged "latest" automatically.
 
 
 Push images
 ===========
 
-  make push VERSION=X.Y
+You don't need to push images manually to Docker Hub.
 
-This will push both the images tagged with the "X.Y" and "latest" versions.
-If VERSION is omitted, only this command only pushes the "latest" versions.
+Instead, create git tags and push them to GitHUb.
+Refer to the workflow definition above for more information on the proper
+format to use for tag names.
+
+
+Refresh the (Docker) tags
+=========================
+
+WARNING: remember to wait for all images to have been built by Docker Hub
+         before refreshing the tags, or this will have no effect whatsoever.
+
+To refresh the docker tags, run:
+
+  make refresh
+
+
+Test already published images
+=============================
+
+You can use the following command to test already published images:
+
+  make run VERSION=...
+
+The VERSION variable is optional and defaults to using the latest available
+release for each component.
+
+Note: one caveat of this method is that docker-compose will try to fetch
+      the given version for every component, which may fail.
+      (eg. if you try to use version 5.0.1 for component A while component B
+      only has version 5.0.0 available)
 
 
 Cleanup
@@ -48,3 +90,7 @@ You may also want to run:
   docker image prune -a
 
 to also remove unused images.
+
+You may also want to remove unused volumes if disk space becomes an issue.
+We recommend doing so manually rather than relying on "docker volume prune"
+to avoid accidentally deleting important data.

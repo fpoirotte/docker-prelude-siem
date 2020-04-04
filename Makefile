@@ -12,22 +12,9 @@ all: run
 run:
 	TAG=$(VERSION) docker-compose -f docker-compose.yml -f "docker-compose.$(ENVIRONMENT).yml" up --abort-on-container-exit
 
-.PHONY: build
-build: $(addprefix build-,$(CONTAINERS))
-
-.PHONY: push
-push: $(addprefix push-,$(CONTAINERS))
-
-.PHONY: build-fpoirotte/%
-build-fpoirotte/%:
-	docker build --build-arg "buildenv=$(ENVIRONMENT)" -f "dockerfiles/$(subst prelude-,,$*)/Dockerfile" --pull=true -t "fpoirotte/$*:latest" -t "fpoirotte/$*:$(VERSION)" $(squash) .
-
-.PHONY: push-fpoirotte/%
-push-fpoirotte/%:
-	docker push "fpoirotte/$*:latest"
-ifneq ($(VERSION),latest)
-	docker push "fpoirotte/$*:$(VERSION)"
-endif
+.PHONY: refresh
+refresh:
+	./.refresh
 
 .PHONY: clean
 clean: clean_images
