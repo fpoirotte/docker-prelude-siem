@@ -88,7 +88,7 @@ as well.
 
         docker create \
             -v prelude_db-alerts:/var/lib/pgsql/data:ro \
-            -v secrets/alerts_db:/run/secrets/alerts_db:ro \
+            -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
             -e POSTGRES_DB=prelude \
             -e POSTGRES_USER=prelude \
             -e POSTGRES_PASSWORD_FILE=/run/secrets/alerts_db \
@@ -96,7 +96,7 @@ as well.
 
         docker create \
             -v prelude_db-gui:/var/lib/pgsql/data:ro \
-            -v secrets/gui_db:/run/secrets/gui_db:ro \
+            -v $(pwd)/secrets/gui_db:/run/secrets/gui_db:ro \
             -e POSTGRES_DB=prewikka \
             -e POSTGRES_USER=prewikka \
             -e POSTGRES_PASSWORD_FILE=/run/secrets/gui_db \
@@ -104,31 +104,30 @@ as well.
 
         docker create \
             -p 5553:5553 -p 4690:4690 \
-            -v secrets/alerts_db:/run/secrets/alerts_db:ro \
-            -v secrets/sensors:/run/secrets/sensors:ro \
+            -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
+            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
             -e ALERTS_DB_PASSWORD_FILE=/run/secrets/alerts_db \
             -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
             --net=none --name prelude_manager_1           fpoirotte/prelude-manager
 
         docker create \
-            -v secrets/alerts_db:/run/secrets/alerts_db:ro \
-            -v secrets/sensors:/run/secrets/sensors:ro \
+            -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
+            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
             -e ALERTS_DB_PASSWORD_FILE=/run/secrets/alerts_db \
             -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
             --net=none --name prelude_correlator_1        fpoirotte/prelude-correlator
 
         docker create \
             -p 80:80 \
-            -v secrets/alerts_db:/run/secrets/alerts_db:ro \
-            -v secrets/gui_db:/run/secrets/gui_db:ro \
+            -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
+            -v $(pwd)/secrets/gui_db:/run/secrets/gui_db:ro \
             -e ALERTS_DB_PASSWORD_FILE=/run/secrets/alerts_db \
             -e GUI_DB_PASSWORD_FILE=/run/secrets/gui_db \
             --net=none --name prelude_prewikka_1          fpoirotte/prewikka
 
         docker create \
-            -p 80:80 \
-            -v secrets/alerts_db:/run/secrets/alerts_db:ro \
-            -v secrets/gui_db:/run/secrets/gui_db:ro \
+            -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
+            -v $(pwd)/secrets/gui_db:/run/secrets/gui_db:ro \
             -e ALERTS_DB_PASSWORD_FILE=/run/secrets/alerts_db \
             -e GUI_DB_PASSWORD_FILE=/run/secrets/gui_db \
             --net=none --name prelude_prewikka-crontab_1  fpoirotte/prewikka-crontab
@@ -138,14 +137,14 @@ as well.
         # with the host's own syslog server.
         docker create \
             -p 514:514/tcp \
-            -v secrets/sensors:/run/secrets/sensors:ro \
+            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
             -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
             --net=none --name prelude_lml_1         fpoirotte/prelude-lml
 
         # Otherwise, use the following command to enable it for both TCP and UDP.
         docker create \
             -p 514:514/tcp -p 514:514/udp \
-            -v secrets/sensors:/run/secrets/sensors:ro \
+            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
             -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
             --net=none --name prelude_lml_1         fpoirotte/prelude-lml
 
