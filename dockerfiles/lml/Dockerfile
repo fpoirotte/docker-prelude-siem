@@ -1,8 +1,6 @@
 FROM centos:7
 
-ARG buildenv
-RUN (test "${buildenv:-prod}" = "dev" && yum -y --setopt=tsflags=nodocs update || :) \
-    && yum -y --setopt=tsflags=nodocs install epel-release \
+RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \
         prelude-lml \
         prelude-lml-rules \
