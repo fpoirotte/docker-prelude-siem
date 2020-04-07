@@ -10,7 +10,7 @@ all: run
 
 .PHONY: run
 run:
-	TAG=$(VERSION) docker-compose -f docker-compose.yml -f "docker-compose.$(ENVIRONMENT).yml" up --abort-on-container-exit
+	TAG=$(VERSION) docker-compose -f docker-compose.yml -f "docker-compose.$(ENVIRONMENT).yml" up --build --abort-on-container-exit
 
 .PHONY: refresh
 refresh:
