@@ -1,12 +1,12 @@
-FROM centos:7
+FROM centos:8
 
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \
         postgresql \
         preludedb-pgsql \
-        python2-prelude-correlator \
+        python3-prelude-correlator \
         prelude-tools \
-        python-netaddr \
+        python3-netaddr \
     && yum clean all \
     && rm -rf /var/cache/yum
 

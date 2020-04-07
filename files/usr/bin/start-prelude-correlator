@@ -24,4 +24,4 @@ while [ true ]; do
 done
 
 echo "Starting prelude-correlator"
-exec /usr/sbin/prelude-correlator-2
+exec /usr/sbin/prelude-correlator

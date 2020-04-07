@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:8
 
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \

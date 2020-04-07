@@ -1,18 +1,12 @@
-FROM centos:7
+FROM centos:8
 
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
-    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
-        python-croniter \
     && yum -y --setopt=tsflags=nodocs install \
         httpd \
-        mod_wsgi \
+        python3-mod_wsgi \
         postgresql \
-        python2-prewikka \
+        python3-prewikka \
         preludedb-pgsql \
-        python-gevent \
-        python2-voluptuous \
-        python2-lark-parser \
-        python-enum34 \
     && mv /usr/share/prewikka/prewikka.wsgi /var/www/html/ \
     && yum clean all \
     && rm -rf /var/cache/yum
