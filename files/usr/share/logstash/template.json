@@ -1,0 +1,91 @@
+{
+  "logs" : {
+    "order" : 0,
+    "version" : 60001,
+    "index_patterns" : [
+      "logs-*"
+    ],
+    "settings" : {
+      "index" : {
+        "lifecycle" : {
+          "name" : "logstash-policy",
+          "rollover_alias" : "logs"
+        },
+        "number_of_shards" : "1",
+        "refresh_interval" : "5s"
+      }
+    },
+    "mappings" : {
+      "dynamic": true,
+      "properties" : {
+        "received_at" : {
+          "type" : "date"
+        },
+        "received_from" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "norms" : false
+        },
+        "message" : {
+          "type" : "text",
+          "norms" : false
+        },
+        "@timestamp" : {
+          "type" : "date"
+        },
+        "syslog_facility" : {
+          "type" : "keyword",
+          "ignore_above" : 256,
+          "norms" : false
+        },
+        "syslog_severity" : {
+          "type" : "keyword",
+          "ignore_above" : 256,
+          "norms" : false
+        },
+        "syslog_hostname" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "norms" : false
+        },
+        "syslog_program" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "norms" : false
+        },
+        "syslog_pid" : {
+          "type" : "keyword",
+          "ignore_above" : 256,
+          "norms" : false
+        },
+        "syslog_message" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "norms" : false
+        }
+      }
+    },
+    "aliases" : { }
+  }
+}
+

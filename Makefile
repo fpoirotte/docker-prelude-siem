@@ -25,4 +25,4 @@ clean_images: clean_containers
 
 .PHONY: clean_containers
 clean_containers:
-	docker rm -f prelude_prewikka_1 prelude_prewikka-crontab_1 prelude_lml_1 prelude_correlator_1 prelude_manager_1 prelude_db-gui_1 prelude_db-alerts_1
+	docker rm -f prelude_prewikka_1 prelude_prewikka-crontab_1 prelude_lml_1 prelude_correlator_1 prelude_manager_1 prelude_db-gui_1 prelude_db-alerts_1 prelude_db-logs_1

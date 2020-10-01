@@ -36,5 +36,17 @@ while [ true ]; do
     sleep 1
 done
 
+while [ true ]; do
+    echo "Waiting for the logs' database to come online..."
+    res=`curl -s -o /dev/null http://db-logs:9200 && echo "OK" || echo "NOK"`
+    if [ "$res" = "OK" ]; then
+        break
+    fi
+    sleep 5
+done
+
+prelude-wait4injector
+
+TZ="${SYSLOG_TIMEZONE-UTC}" logger -it prewikka-container --rfc3164 -T -P 6514 -n injector Starting Prelude GUI
 echo "Starting the HTTP daemon"
 exec /usr/sbin/apachectl -DFOREGROUND

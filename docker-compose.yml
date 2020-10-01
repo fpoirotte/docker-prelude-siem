@@ -1,11 +1,50 @@
 version: '3.1'
 services:
+  injector:
+    image: "logstash:7.9.2"
+    depends_on:
+      - db-logs
+      - lml
+    environment:
+      MONITORING_ENABLED:       "false"
+      xpack.monitoring.enabled: "false"
+      SYSLOG_TIMEZONE:          "${SYSLOG_TIMEZONE}"
+    networks:
+      - injector2logs
+      - injector2lml
+      - gui2injector
+    volumes:
+      - ./files/usr/share/logstash/pipeline/:/usr/share/logstash/pipeline/:ro
+      - ./files/usr/share/logstash/template.json:/usr/share/logstash/template.json:ro
+    ports:
+      - "514:6514/tcp"
+      # Uncomment the next line to accept logs in the syslog format
+      # on UDP port 514.
+      - "514:6514/udp"
+
+  db-logs:
+    image: "elasticsearch:7.9.2"
+    environment:
+      discovery.type:                       single-node
+      bootstrap.memory_lock:                "true"
+      xpack.monitoring.collection.enabled:  "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    networks:
+      - injector2logs
+      - logs
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - db-logs:/usr/share/elasticsearch/data
+
   db-alerts:
     image: "postgres:latest"
     environment:
-      POSTGRES_DB:       prelude
-      POSTGRES_USER:     prelude
-      POSTGRES_PASSWORD_FILE: /run/secrets/alerts_db
+      POSTGRES_DB:              prelude
+      POSTGRES_USER:            prelude
+      POSTGRES_PASSWORD_FILE:   /run/secrets/alerts_db
     networks:
       - alerts
     secrets:
@@ -16,9 +55,9 @@ services:
   db-gui:
     image: "postgres:latest"
     environment:
-      POSTGRES_DB:       prewikka
-      POSTGRES_USER:     prewikka
-      POSTGRES_PASSWORD_FILE: /run/secrets/gui_db
+      POSTGRES_DB:              prewikka
+      POSTGRES_USER:            prewikka
+      POSTGRES_PASSWORD_FILE:   /run/secrets/gui_db
     networks:
       - gui
     secrets:
@@ -30,8 +69,8 @@ services:
     depends_on:
       - db-alerts
     environment:
-      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
-      SENSORS_PASSWORD_FILE:   /run/secrets/sensors
+      ALERTS_DB_PASSWORD_FILE:  /run/secrets/alerts_db
+      SENSORS_PASSWORD_FILE:    /run/secrets/sensors
     secrets:
       - sensors
       - alerts_db
@@ -47,8 +86,8 @@ services:
       - manager
       - db-alerts
     environment:
-      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
-      SENSORS_PASSWORD_FILE: /run/secrets/sensors
+      ALERTS_DB_PASSWORD_FILE:  /run/secrets/alerts_db
+      SENSORS_PASSWORD_FILE:    /run/secrets/sensors
     secrets:
       - alerts_db
       - sensors
@@ -60,25 +99,24 @@ services:
     depends_on:
       - manager
     environment:
-      SENSORS_PASSWORD_FILE: /run/secrets/sensors
+      SENSORS_PASSWORD_FILE:    /run/secrets/sensors
     secrets:
       - sensors
-    ports:
-      - "514:514/tcp"
-      # Uncomment the next line to accept logs in the syslog format
-      # on UDP port 514.
-#      - "514:514/udp"
     networks:
       - agents
+      - injector2lml
 
   prewikka:
     depends_on:
       - db-alerts
       - db-gui
+      - db-logs
+      - injector
       - manager
     environment:
-      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
-      GUI_DB_PASSWORD_FILE:    /run/secrets/gui_db
+      ALERTS_DB_PASSWORD_FILE:  /run/secrets/alerts_db
+      GUI_DB_PASSWORD_FILE:     /run/secrets/gui_db
+      SYSLOG_TIMEZONE:          "${SYSLOG_TIMEZONE}"
     ports:
       - "80:80"
     secrets:
@@ -87,21 +125,25 @@ services:
     networks:
       - alerts
       - gui
+      - gui2injector
+      - logs
 
   prewikka-crontab:
     depends_on:
       - db-alerts
       - db-gui
+      - db-logs
       - manager
     environment:
-      ALERTS_DB_PASSWORD_FILE: /run/secrets/alerts_db
-      GUI_DB_PASSWORD_FILE:    /run/secrets/gui_db
+      ALERTS_DB_PASSWORD_FILE:  /run/secrets/alerts_db
+      GUI_DB_PASSWORD_FILE:     /run/secrets/gui_db
     secrets:
       - alerts_db
       - gui_db
     networks:
       - alerts
       - gui
+      - logs
 
 
 volumes:
@@ -109,12 +151,18 @@ volumes:
     driver: local
   db-gui:
     driver: local
+  db-logs:
+    driver: local
 
 
 networks:
+  agents:
   alerts:
   gui:
-  agents:
+  gui2injector:
+  injector2lml:
+  injector2logs:
+  logs:
 
 
 secrets:

@@ -3,10 +3,13 @@ FROM centos:8
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \
         httpd \
-        python3-mod_wsgi \
         postgresql \
-        python3-prewikka \
+        python3-mod_wsgi \
+        python3-passlib \
+        python3-requests \
+    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
         preludedb-pgsql \
+        python3-prewikka \
     && mv /usr/share/prewikka/prewikka.wsgi /var/www/html/ \
     && yum clean all \
     && rm -rf /var/cache/yum

@@ -1,0 +1,48 @@
+input {
+  tcp {
+    port => 6514
+  }
+  udp {
+    port => 6514
+  }
+}
+
+filter {
+  grok {
+    match => { "message" => "(<%{POSINT:syslog_pri}>)?%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: ?%{GREEDYDATA:syslog_message}" }
+    add_field => [ "received_at", "%{@timestamp}" ]
+    add_field => [ "received_from", "%{host}" ]
+  }
+  date {
+    match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    timezone => "${SYSLOG_TIMEZONE}"
+  }
+  syslog_pri {}
+  prune {
+    blacklist_names => [ "^(syslog_timestamp|@version|host|port|syslog_severity_code|syslog_facility_code|syslog_pri)$" ]
+  }
+}
+
+output {
+  #stdout {}
+
+  elasticsearch {
+    hosts => ["http://db-logs:9200"]
+    ilm_rollover_alias => "logs"
+    ilm_pattern => "000001"
+    retry_max_interval => 8
+    template => "/usr/share/logstash/template.json"
+    template_name => "logs"
+    template_overwrite => "true"
+  }
+
+  tcp {
+    host => "lml"
+    port => 514
+    reconnect_interval => 1
+    codec => line {
+        format => "%{message}"
+    }
+  }
+}
+

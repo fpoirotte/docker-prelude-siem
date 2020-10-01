@@ -3,8 +3,11 @@ FROM centos:8
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \
         postgresql \
-        python3-prewikka \
+        python3-passlib \
+        python3-requests \
+    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
         preludedb-pgsql \
+        python3-prewikka \
     && yum clean all \
     && rm -rf /var/cache/yum
 
