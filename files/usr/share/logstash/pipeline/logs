@@ -31,8 +31,8 @@ output {
     ilm_rollover_alias => "logs"
     ilm_pattern => "000001"
     retry_max_interval => 8
-    template => "/usr/share/logstash/template.json"
-    template_name => "logs"
+#    template => "/usr/share/logstash/template.json"
+#    template_name => "logs"
     template_overwrite => "true"
   }
 

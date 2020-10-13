@@ -1,7 +1,7 @@
 FROM centos:8
 
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
-    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
+    && yum -y --setopt=tsflags=nodocs install \
         prelude-lml \
         prelude-lml-rules \
         prelude-tools \

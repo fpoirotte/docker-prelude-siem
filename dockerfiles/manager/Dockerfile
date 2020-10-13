@@ -3,7 +3,6 @@ FROM centos:8
 RUN    yum -y --setopt=tsflags=nodocs install epel-release \
     && yum -y --setopt=tsflags=nodocs install \
         postgresql \
-    && yum -y --setopt=tsflags=nodocs install --enablerepo=epel-testing \
         prelude-manager \
         prelude-manager-db-plugin \
         prelude-tools \
