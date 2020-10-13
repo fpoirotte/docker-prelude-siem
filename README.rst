@@ -38,9 +38,11 @@ To start the SIEM, go to the newly created folder and run ``docker-compose``:
 ..  sourcecode:: console
 
     cd docker-prelude-siem
-    docker-compose up -f docker-compose.yml -f docker-composer.prod.yml \
+
+    # Replace "Europe/Paris" with the appropriate timezone for your location.
+    SYSLOG_TIMEZONE=Europe/Paris docker-compose up -f docker-compose.yml -f docker-composer.prod.yml \
                       --build --force-recreate --abort-on-container-exit
-    # or if "make" is installed on your system, you can just run "make"
+    # or if "make" is installed on your system, you can just run "make SYSLOG_TIMEZONE=..."
 
 ``docker-compose`` will recreate the containers, start them and wait for
 further instructions.
@@ -112,7 +114,7 @@ as well.
     ..  sourcecode:: console
 
         docker create \
-            -v prelude_db-alerts:/var/lib/pgsql/data:ro \
+            -v prelude_db-alerts:/var/lib/pgsql/data \
             -v $(pwd)/secrets/alerts_db:/run/secrets/alerts_db:ro \
             -e POSTGRES_DB=prelude \
             -e POSTGRES_USER=prelude \
@@ -120,12 +122,21 @@ as well.
             --net=none --name prelude_db-alerts_1         postgres:latest
 
         docker create \
-            -v prelude_db-gui:/var/lib/pgsql/data:ro \
+            -v prelude_db-gui:/var/lib/pgsql/data \
             -v $(pwd)/secrets/gui_db:/run/secrets/gui_db:ro \
             -e POSTGRES_DB=prewikka \
             -e POSTGRES_USER=prewikka \
             -e POSTGRES_PASSWORD_FILE=/run/secrets/gui_db \
             --net=none --name prelude_db-gui_1            postgres:latest
+
+        docker create \
+            -v prelude_db-logs:/usr/share/elasticsearch/data \
+            -e discovery.type=single-node \
+            -e bootstrap.memory_lock=true \
+            -e xpack.monitoring.collection.enabled=false \
+            -e ES_JAVA_OPTS="-Xms512m -Xmx512m" \
+            --ulimit memlock=-1:-1 \
+            --net=none --name prelude_db-logs_1           elasticsearch:7.9.2
 
         docker create \
             -p 5553:5553 -p 4690:4690 \
@@ -157,21 +168,34 @@ as well.
             -e GUI_DB_PASSWORD_FILE=/run/secrets/gui_db \
             --net=none --name prelude_prewikka-crontab_1  fpoirotte/prewikka-crontab
 
+        docker create \
+            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
+            -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
+            --net=none --name prelude_lml_1               fpoirotte/prelude-lml
+
         # Use the following command to enable the syslog receiver for TCP only.
         # This is recommended for most installations to avoid potential conflicts
         # with the host's own syslog server.
+        # Replace "Europe/Paris" with the appropriate timezone for your location.
         docker create \
             -p 514:514/tcp \
-            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
-            -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
-            --net=none --name prelude_lml_1         fpoirotte/prelude-lml
+            -v $(pwd)/files/usr/share/logstash/pipeline/:/usr/share/logstash/pipeline/:ro \
+            -v $(pwd)/files/usr/share/logstash/template.json:/usr/share/logstash/template.json:ro \
+            -e MONITORING_ENABLED=false \
+            -e xpack.monitoring.enabled=false \
+            -e SYSLOG_TIMEZONE=Europe/Paris \
+            --net=none --name prelude_injector_1         logstash:7.9.2
 
-        # Otherwise, use the following command to enable it for both TCP and UDP.
+        # Otherwise, use the following command to expose both the TCP and UDP
+        # ports.
         docker create \
             -p 514:514/tcp -p 514:514/udp \
-            -v $(pwd)/secrets/sensors:/run/secrets/sensors:ro \
-            -e SENSORS_PASSWORD_FILE=/run/secrets/sensors \
-            --net=none --name prelude_lml_1         fpoirotte/prelude-lml
+            -v $(pwd)/files/usr/share/logstash/pipeline/:/usr/share/logstash/pipeline/:ro \
+            -v $(pwd)/files/usr/share/logstash/template.json:/usr/share/logstash/template.json:ro \
+            -e MONITORING_ENABLED=false \
+            -e xpack.monitoring.enabled=false \
+            -e SYSLOG_TIMEZONE=Europe/Paris \
+            --net=none --name prelude_injector_1         logstash:7.9.2
 
 4.  Reconnect the containers to their respective networks:
 
