@@ -303,7 +303,7 @@ The following services get exposed to the host:
 
 * ``514/udp`` (``injector`` container): syslog receiver
   (Note: you may need to disable this port if is conflicts with the host's
-  ownsyslog server)
+  own syslog server)
 
 * ``80/tcp`` (``prewikka`` container): web interface
 
